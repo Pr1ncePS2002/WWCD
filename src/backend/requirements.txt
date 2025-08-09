@@ -5,9 +5,12 @@ wheel
 # Core ML library
 tensorflow~=2.16.1
 
-# Application libraries
-deepface
+# Web application
 fastapi
+uvicorn[standard]
+
+# Other libraries
+deepface
 opencv-python
 pandas
 numpy
