@@ -1,7 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
 from typing import List
 import shutil
 import uuid
@@ -21,25 +20,11 @@ app.add_middleware(
 
 # Create temp directory and mount static directory
 os.makedirs("temp_uploads", exist_ok=True)
-<<<<<<< HEAD
-os.makedirs("static/generated_cards", exist_ok=True)
-
-# Mount static directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.post("/predict-winners")
-async def predict_winners(images: List[UploadFile] = File(...)):
-    """
-    Accept 2 or 4 uploaded images, process, and return winner URLs in a consistent JSON object.
-    """
-    
-=======
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.post("/predict-winners")
 async def predict_winners(images: List[UploadFile] = File(...)):
->>>>>>> 3ce13d765c2c4914baa64d5dd73bddb8bce14291
     if len(images) not in [2, 4]:
         raise HTTPException(
             status_code=400,
@@ -76,36 +61,7 @@ async def predict_winners(images: List[UploadFile] = File(...)):
         image_scores.sort(key=lambda x: x["score"], reverse=True)
         num_winners = 1 if len(images) == 2 else 2
         winners = image_scores[:num_winners]
-        
-        # --- NEW LOGIC: Construct the JSON object ---
-        response_data = {
-            "winner1_card_url": None,
-            "winner2_card_url": None,
-            "winner1_score": None,
-            "winner2_score": None,
-            "count": len(images)
-        }
 
-<<<<<<< HEAD
-        # Populate winner 1 data
-        if winners:
-            winner1 = winners[0]
-            card_url = get_card(winner1["path"])
-            response_data["winner1_card_url"] = card_url
-            response_data["winner1_score"] = winner1["score"]
-        
-        # Populate winner 2 data if it exists
-        if len(winners) > 1:
-            winner2 = winners[1]
-            card_url = get_card(winner2["path"])
-            response_data["winner2_card_url"] = card_url
-            response_data["winner2_score"] = winner2["score"]
-            
-        return JSONResponse(content=response_data)
-
-    except HTTPException:
-        raise
-=======
         winner_cards = []
         for winner in winners:
             card_path = get_card(winner["path"])
@@ -115,7 +71,6 @@ async def predict_winners(images: List[UploadFile] = File(...)):
 
         return winner_cards
 
->>>>>>> 3ce13d765c2c4914baa64d5dd73bddb8bce14291
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
