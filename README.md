@@ -88,8 +88,7 @@ The backend is powered by FastAPI and is the core of the application's intellige
 
 ### Project Demo
 # Video
-[My Video][(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/Recording%202025-08-09%20170459.mp4)]
-*Explain what the video demonstrates*
+https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/Untitled%20video%20-%20Made%20with%20Clipchamp.mp4
 
 
 ## Team Contributions
