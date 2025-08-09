@@ -6,6 +6,7 @@ import shutil
 from typing import List
 import uuid
 import random
+import os
 
 app = FastAPI(title="Alfahm Chest Piece Decider API")
 
