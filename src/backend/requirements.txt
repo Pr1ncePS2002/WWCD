@@ -1,4 +1,4 @@
-setuptools
+setuptools>=65.5.0
 wheel
 tensorflow==2.20.0rc0
 deepface==0.0.75
