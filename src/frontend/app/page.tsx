@@ -12,10 +12,13 @@ type PreviewItem = { file: File; url: string }
 type Result = { winner1_card_url: string; winner2_card_url: string }
 
 export default function Page() {
-  
   const router = useRouter()
+
   const [previews, setPreviews] = useState<Array<PreviewItem | null>>([null, null, null, null])
   const [isLoading, setIsLoading] = useState(false)
+
+  // Allow user to choose 2 or 4 photos
+  const [requiredCount, setRequiredCount] = useState<2 | 4>(4)
 
   // Camera modal state
   const [cameraOpen, setCameraOpen] = useState(false)
@@ -37,22 +40,42 @@ export default function Page() {
     }
   }, [previews])
 
-  const allFourSelected = useMemo(() => previews.every((p) => p !== null), [previews])
+  // If switching to 2-photo mode, clear extra slots and revoke their URLs
+  useEffect(() => {
+    if (requiredCount === 2) {
+      setPreviews((prev) => {
+        const next: Array<PreviewItem | null> = [prev[0], prev[1], null, null]
+        prev.slice(2).forEach((p) => p?.url && URL.revokeObjectURL(p.url))
+        return next
+      })
+    }
+  }, [requiredCount])
+
+  const selectedCount = useMemo(() => previews.filter(Boolean).length, [previews])
+  const canPredict = selectedCount === requiredCount
 
   function handleInitialPick(files: FileList | null) {
     if (!files) return
     const images = Array.from(files).filter((f) => f.type.startsWith("image/"))
-    if (images.length !== 4) {
-     toast.error("Exactly 4 images required\nPlease select exactly 4 image files.")
+    if (images.length !== requiredCount) {
+      toast.error(
+        `Exactly ${requiredCount} image${requiredCount === 2 ? "" : "s"} required\nPlease select exactly ${requiredCount} image files.`,
+      )
       return
     }
     previews.forEach((p) => p?.url && URL.revokeObjectURL(p.url))
-    const next = images.map((f) => ({ file: f, url: URL.createObjectURL(f) }))
+    const filled = images.map((f) => ({ file: f, url: URL.createObjectURL(f) }))
+    const next: Array<PreviewItem | null> =
+      requiredCount === 2 ? [filled[0], filled[1], null, null] : [filled[0], filled[1], filled[2], filled[3]]
     setPreviews(next)
   }
 
   function handleReplaceAt(index: number, files: FileList | null) {
     if (!files || files.length === 0) return
+    if (index >= requiredCount) {
+      toast.error(`This slot is disabled in ${requiredCount}-photo mode`)
+      return
+    }
     const file = files[0]
     if (!file.type.startsWith("image/")) {
       toast.error("Not an image\nPlease choose an image file.")
@@ -72,12 +95,16 @@ export default function Page() {
     setCameraTargetIndex(index)
     setCameraOpen(true)
   }
+
   function handleCameraCaptured(file: File) {
     const preview: PreviewItem = { file, url: URL.createObjectURL(file) }
     setPreviews((prev) => {
       const next = [...prev]
-      const target = cameraTargetIndex !== null ? cameraTargetIndex : prev.findIndex((p) => p === null)
-      const idx = target === -1 ? 0 : target
+      const allowedRange = requiredCount === 2 ? [0, 1] : [0, 1, 2, 3]
+      const firstEmpty = allowedRange.find((i) => prev[i] === null)
+      const target = cameraTargetIndex !== null ? cameraTargetIndex : firstEmpty
+      const idx = target !== undefined && target !== -1 ? target : allowedRange[0]
+      if (idx >= requiredCount) return prev // guard
       const old = next[idx]
       if (old?.url) URL.revokeObjectURL(old.url)
       next[idx] = preview
@@ -86,17 +113,21 @@ export default function Page() {
   }
 
   async function onPredict() {
-    if (!allFourSelected) return
+    if (!canPredict) return
     try {
       setIsLoading(true)
       const form = new FormData()
-      previews.forEach((p, idx) => {
-        if (p?.file) form.append("images", p.file, p.file.name || `image-${idx + 1}.jpg`)
+      ;[0, 1, 2, 3].forEach((idx) => {
+        const p = previews[idx]
+        if (p?.file && idx < requiredCount) {
+          form.append("images", p.file, p.file.name || `image-${idx + 1}.jpg`)
+        }
       })
       const res = await fetch("/predict-winners", { method: "POST", body: form })
       if (!res.ok) throw new Error((await res.text().catch(() => "")) || "Request failed")
       const data = (await res.json()) as Result
-      sessionStorage.setItem("alfahm-winners", JSON.stringify(data))
+      // Persist also the chosen count so results page knows how many to show
+      sessionStorage.setItem("alfahm-winners", JSON.stringify({ ...data, count: requiredCount }))
       router.push("/results")
     } catch (err: any) {
       setIsLoading(false)
@@ -131,7 +162,7 @@ export default function Page() {
             <div className="mx-auto mt-3 h-1 w-48 rounded-full bg-orange-500/90" />
           </div>
           <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-white/70">
-            {"Upload 4 images of friends, and we’ll crown the 2 most excited as chest piece winners! 🍗"}
+            {"Upload 2 or 4 images of friends, and we’ll crown the most excited chest piece winners! 🍗"}
           </p>
 
           <div className="mx-auto mt-6 h-[1px] w-56 rounded-full bg-orange-500/20" />
@@ -140,13 +171,39 @@ export default function Page() {
         <section className="mt-8 sm:mt-10 rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset,0_10px_30px_-15px_rgba(0,0,0,0.8)] backdrop-blur">
           {/* Controls */}
           <div className="flex flex-wrap items-center justify-center gap-3 border-b border-white/10 px-4 py-4">
+            {/* Count selector */}
+            <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+              <Button
+                type="button"
+                variant="ghost"
+                className={cn(
+                  "h-8 rounded-full px-3 text-xs",
+                  requiredCount === 2 ? "bg-orange-600 text-white hover:bg-orange-500" : "text-white/80",
+                )}
+                onClick={() => setRequiredCount(2)}
+              >
+                {"2 Photos"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className={cn(
+                  "h-8 rounded-full px-3 text-xs",
+                  requiredCount === 4 ? "bg-orange-600 text-white hover:bg-orange-500" : "text-white/80",
+                )}
+                onClick={() => setRequiredCount(4)}
+              >
+                {"4 Photos"}
+              </Button>
+            </div>
+
             <Button
               onClick={() => initialPickerRef.current?.click()}
               type="button"
               className="bg-orange-600 hover:bg-orange-500 text-white"
             >
               <ImagePlus className="mr-2 h-4 w-4" />
-              {"Select 4 Images"}
+              {`Select ${requiredCount} Images`}
             </Button>
             <input
               ref={initialPickerRef}
@@ -178,7 +235,7 @@ export default function Page() {
             </Button>
           </div>
 
-          {/* Single square with 4 sections (compact, chaicode-style card) */}
+          {/* Single square with 4 sections */}
           <div className="px-4 py-6 sm:px-6 sm:py-8">
             <div
               className={cn(
@@ -190,6 +247,7 @@ export default function Page() {
               <div className="grid h-full w-full grid-cols-2 grid-rows-2">
                 {[0, 1, 2, 3].map((i) => {
                   const item = previews[i]
+                  const disabledSlot = i >= requiredCount
                   return (
                     <div key={i} className="relative">
                       {/* Dividers */}
@@ -204,11 +262,12 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={() => replacePickerRefs[i].current?.click()}
-                        disabled={isLoading}
+                        disabled={isLoading || disabledSlot}
                         aria-label={item ? `Replace image ${i + 1}` : `Add image ${i + 1}`}
                         className={cn(
                           "group relative h-full w-full overflow-hidden",
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50",
+                          disabledSlot && "cursor-not-allowed opacity-50",
                         )}
                       >
                         <div className="pointer-events-none absolute left-2 top-2 z-10 rounded-full border border-white/15 bg-black/50 px-2 py-0.5 text-xs text-white/85">
@@ -232,7 +291,9 @@ export default function Page() {
                             <div className="rounded-md border border-dashed border-white/20 p-3">
                               <ImagePlus className="h-6 w-6 text-white/70" />
                             </div>
-                            <p className="mt-2 text-sm text-white/80">{"Click to add image"}</p>
+                            <p className="mt-2 text-sm text-white/80">
+                              {disabledSlot ? "Disabled" : "Click to add image"}
+                            </p>
                             <p className="text-xs text-white/60">
                               {"Slot "}
                               {i + 1}
@@ -250,28 +311,30 @@ export default function Page() {
                       />
 
                       {/* Camera overlay control */}
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        title="Use Camera"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openCameraFor(i)
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault()
+                      {!disabledSlot && (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          title="Use Camera"
+                          onClick={(e) => {
+                            e.stopPropagation()
                             openCameraFor(i)
-                          }
-                        }}
-                        className={cn(
-                          "absolute right-2 top-2 z-20 inline-flex h-8 w-8 items-center justify-center",
-                          "rounded-full border border-white/20 bg-black/60 text-white/90",
-                          "hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-orange-500/50",
-                        )}
-                      >
-                        <Camera className="h-4 w-4" />
-                      </span>
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault()
+                              openCameraFor(i)
+                            }
+                          }}
+                          className={cn(
+                            "absolute right-2 top-2 z-20 inline-flex h-8 w-8 items-center justify-center",
+                            "rounded-full border border-white/20 bg-black/60 text-white/90",
+                            "hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-orange-500/50",
+                          )}
+                        >
+                          <Camera className="h-4 w-4" />
+                        </span>
+                      )}
                     </div>
                   )
                 })}
@@ -282,7 +345,7 @@ export default function Page() {
             <div className="mt-8 flex items-center justify-center">
               <Button
                 size="lg"
-                disabled={!allFourSelected || isLoading}
+                disabled={!canPredict || isLoading}
                 onClick={onPredict}
                 type="button"
                 className="h-12 px-8 text-base sm:text-lg bg-orange-600 hover:bg-orange-500 text-white"
@@ -293,7 +356,7 @@ export default function Page() {
                     {"Predicting..."}
                   </>
                 ) : (
-                  "Predict Winners"
+                  `Predict Winner${requiredCount === 4 ? "s" : ""}`
                 )}
               </Button>
             </div>
