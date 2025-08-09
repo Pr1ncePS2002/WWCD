@@ -77,7 +77,7 @@ The frontend is built with Next.js and React, providing a responsive and dynamic
 The backend is powered by FastAPI and is the core of the application's intelligence. It receives images from the frontend and uses a set of powerful Python libraries to perform complex tasks. It employs DeepFace for facial emotion recognition to calculate an excitement score for each user. It also uses Pillow and rembg to remove image backgrounds and composite the winners' animated headshots onto pre-designed football card templates. The backend's main function is to select the most excited players and generate the final winner cards, which are then served as static files to the frontend.
 
 # Screenshots (Add at least 3)
-(<img width="1920" height="1080" alt="image (1)" src="https://github.com/user-attachments/assets/8fae0ccf-2c48-4cba-983b-458a1b49f52c" />)
+(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/1.png)
 
 (<img width="577" height="575" alt="image (2)" src="https://github.com/user-attachments/assets/c80af995-32f0-4860-8924-331aaa912bb4" />
 )
