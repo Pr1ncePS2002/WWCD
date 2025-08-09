@@ -77,22 +77,21 @@ The frontend is built with Next.js and React, providing a responsive and dynamic
 The backend is powered by FastAPI and is the core of the application's intelligence. It receives images from the frontend and uses a set of powerful Python libraries to perform complex tasks. It employs DeepFace for facial emotion recognition to calculate an excitement score for each user. It also uses Pillow and rembg to remove image backgrounds and composite the winners' animated headshots onto pre-designed football card templates. The backend's main function is to select the most excited players and generate the final winner cards, which are then served as static files to the frontend.
 
 # Screenshots (Add at least 3)
-(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/1.png)
+[(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/1.png)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/1.png)
 
-(<img width="577" height="575" alt="image (2)" src="https://github.com/user-attachments/assets/c80af995-32f0-4860-8924-331aaa912bb4" />
-)
+[(<img width="577" height="575" alt="image (2)" src="https://github.com/user-attachments/assets/c80af995-32f0-4860-8924-331aaa912bb4" />
+)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/2.png)
 
-(<img width="582" height="581" alt="image (3)" src="https://github.com/user-attachments/assets/823f8f7c-377d-4058-aa9c-06e86d5f0a52" />
-)
+[(<img width="582" height="581" alt="image (3)" src="https://github.com/user-attachments/assets/823f8f7c-377d-4058-aa9c-06e86d5f0a52" />
+)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/3.png)
 
+[
+( <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/682ecc1f-7eab-402f-9226-8c965785df91" />)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/4.png)
 
-( <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/682ecc1f-7eab-402f-9226-8c965785df91" />)
-
-Frontend asks user to upload either two images or four images 
 
 ### Project Demo
 # Video
-[Add your demo video link here]
+[(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/Recording%202025-08-09%20170459.mp4)]
 *Explain what the video demonstrates*
 
 
