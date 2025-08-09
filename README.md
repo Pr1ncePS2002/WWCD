@@ -79,14 +79,11 @@ The backend is powered by FastAPI and is the core of the application's intellige
 # Screenshots (Add at least 3)
 [(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/1.png)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/1.png)
 
-[(<img width="577" height="575" alt="image (2)" src="https://github.com/user-attachments/assets/c80af995-32f0-4860-8924-331aaa912bb4" />
-)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/2.png)
+(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/2.png)
 
-[(<img width="582" height="581" alt="image (3)" src="https://github.com/user-attachments/assets/823f8f7c-377d-4058-aa9c-06e86d5f0a52" />
-)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/3.png)
+(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/3.png)
 
-[
-( <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/682ecc1f-7eab-402f-9226-8c965785df91" />)](https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/4.png)
+(https://github.com/Pr1ncePS2002/WWCD/blob/main/assets/4.png)
 
 
 ### Project Demo
