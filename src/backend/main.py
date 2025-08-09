@@ -9,10 +9,13 @@ from main_utils import get_score, get_card
 
 app = FastAPI(title="Alfahm Chest Piece Decider API")
 
-# Allow all origins for simplicity in local development
+# Allow specific origins for production and local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://wwcd-git-main-princes-projects-bb0ae716.vercel.app", # Vercel frontend
+        "http://localhost:3000",  # Local development environment
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
