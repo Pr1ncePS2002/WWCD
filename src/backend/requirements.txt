@@ -1,6 +1,5 @@
 fastapi
 deepface
-tensorflow
 opencv-python
 keras
 pandas
