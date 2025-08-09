@@ -5,14 +5,14 @@ from typing import List
 import shutil
 import uuid
 import os
-from utils.main_utils import get_score, get_card
+from main_utils import get_score, get_card
 
 app = FastAPI(title="Alfahm Chest Piece Decider API")
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
