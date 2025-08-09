@@ -25,6 +25,10 @@ app.add_middleware(
 os.makedirs("temp_uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.get("/")
+def root():
+    """Root endpoint for health checks."""
+    return {"message": "FastAPI backend for Readme Miner is running!"}
 
 @app.post("/predict-winners")
 async def predict_winners(request: Request, images: List[UploadFile] = File(...)):
