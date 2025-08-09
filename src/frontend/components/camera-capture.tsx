@@ -61,8 +61,12 @@ export function CameraCapture({
         await (videoRef.current as HTMLVideoElement).play()
         setIsReady(true)
       }
-    } catch (e: any) {
-      setError(e?.message || "Unable to access camera.")
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message)
+      } else {
+        setError("Unable to access camera.")
+      }
     }
   }, [facing, stopStream])
 
@@ -102,7 +106,9 @@ export function CameraCapture({
 
     ctx.drawImage(video, sX, sY, sW, sH, 0, 0, size, size)
 
-    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9))
+    const blob: Blob | null = await new Promise((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9)
+    )
     if (!blob) return
     const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" })
     onCapture(file)
