@@ -10,17 +10,18 @@ from main_utils import get_score, get_card
 
 app = FastAPI(title="Alfahm Chest Piece Decider API")
 
-# Configure CORS
+# Allow all origins for simplicity in local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Create directories if they don't exist
+# Create temp directory and mount static directory
 os.makedirs("temp_uploads", exist_ok=True)
+<<<<<<< HEAD
 os.makedirs("static/generated_cards", exist_ok=True)
 
 # Mount static directory
@@ -32,14 +33,20 @@ async def predict_winners(images: List[UploadFile] = File(...)):
     Accept 2 or 4 uploaded images, process, and return winner URLs in a consistent JSON object.
     """
     
+=======
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.post("/predict-winners")
+async def predict_winners(images: List[UploadFile] = File(...)):
+>>>>>>> 3ce13d765c2c4914baa64d5dd73bddb8bce14291
     if len(images) not in [2, 4]:
         raise HTTPException(
             status_code=400,
             detail=f"Expected 2 or 4 images, but received {len(images)}"
         )
-
-    # Validate content types
-    allowed_types = {"image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"}
+    
+    allowed_types = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
     for image in images:
         if image.content_type not in allowed_types:
             raise HTTPException(
@@ -51,7 +58,6 @@ async def predict_winners(images: List[UploadFile] = File(...)):
     temp_paths = []
 
     try:
-        # Save and score each image
         for image in images:
             file_extension = image.filename.split('.')[-1] if '.' in image.filename else 'jpg'
             unique_filename = f"{uuid.uuid4()}.{file_extension}"
@@ -61,22 +67,13 @@ async def predict_winners(images: List[UploadFile] = File(...)):
                 shutil.copyfileobj(image.file, buffer)
             temp_paths.append(file_path)
             
-            try:
-                excitement_score = get_score(file_path)
-                image_scores.append({
-                    "filename": unique_filename,
-                    "original_name": image.filename,
-                    "path": file_path,
-                    "score": excitement_score
-                })
-            except Exception as e:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Error calculating excitement score for {image.filename}: {str(e)}"
-                )
+            excitement_score = get_score(file_path)
+            image_scores.append({
+                "path": file_path,
+                "score": excitement_score
+            })
 
         image_scores.sort(key=lambda x: x["score"], reverse=True)
-
         num_winners = 1 if len(images) == 2 else 2
         winners = image_scores[:num_winners]
         
@@ -89,6 +86,7 @@ async def predict_winners(images: List[UploadFile] = File(...)):
             "count": len(images)
         }
 
+<<<<<<< HEAD
         # Populate winner 1 data
         if winners:
             winner1 = winners[0]
@@ -107,25 +105,24 @@ async def predict_winners(images: List[UploadFile] = File(...)):
 
     except HTTPException:
         raise
+=======
+        winner_cards = []
+        for winner in winners:
+            card_path = get_card(winner["path"])
+            filename = os.path.basename(card_path)  # get just "942bf34d.png"
+            file_url = f"http://localhost:8000/static/generated_cards/{filename}"
+            winner_cards.append(file_url)
+
+        return winner_cards
+
+>>>>>>> 3ce13d765c2c4914baa64d5dd73bddb8bce14291
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Internal server error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         for path in temp_paths:
             if os.path.exists(path):
                 os.remove(path)
 
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "message": "Alfahm Chest Piece Decider API is running"}
-
-
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    print(f"Starting FastAPI server on port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
