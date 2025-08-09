@@ -16,3 +16,4 @@ pandas
 numpy
 python-dotenv
 rembg
+onnxruntime
