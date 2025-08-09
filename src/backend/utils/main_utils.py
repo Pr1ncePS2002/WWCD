@@ -39,7 +39,7 @@ def get_card(input_image_path, upward_shift_ratio=0.1, glow_color=(255, 255, 0))
     # Note: The alpha component is set by putalpha later
     glow = Image.new("RGBA", no_bg_image.size, glow_color + (0,))
     glow.putalpha(feathered_mask)
-    glow = glow.filter(ImageFilter.GaussianBlur(radius=5))
+    glow = glow.filter(ImageFilter.GaussianBlur(radius=35))
 
     # Composite on canvas
     with Image.open(canvas_image_path) as canvas:
