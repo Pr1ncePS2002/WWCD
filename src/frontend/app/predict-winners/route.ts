@@ -1,81 +1,50 @@
+import { NextRequest, NextResponse } from "next/server";
+
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const files = formData.getAll("images").filter((v): v is File => v instanceof File);
 
-    const count = files.length;
-    if (count !== 2 && count !== 4) {
-      return new Response(
-        JSON.stringify({ error: "Exactly 2 or 4 images are required." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
+    // Validate that exactly 2 or 4 images were uploaded.
+    if (files.length !== 2 && files.length !== 4) {
+      return NextResponse.json(
+        { error: "Exactly 2 or 4 images are required." },
+        { status: 400 }
       );
     }
 
-    if (count === 4) {
-      // Forward to FastAPI backend for real prediction
-      try {
-        const backendResponse = await fetch(`${BACKEND_API_URL}/predict-winners`, {
-          method: "POST",
-          body: formData,
-        });
+    // Forward the request to the Python backend for processing.
+    const backendResponse = await fetch(`${BACKEND_API_URL}/predict-winners`, {
+      method: "POST",
+      body: formData,
+      // Note: 'Content-Type' header is set automatically by fetch() for FormData.
+    });
 
-        if (!backendResponse.ok) {
-          const errorData = await backendResponse.json();
-          return new Response(JSON.stringify(errorData), {
-            status: backendResponse.status,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-
-        const data = await backendResponse.json(); // data is an array of URLs
-
-        // Transform array to object with expected keys
-        const result = {
-          winner1_card_url: data[0] || null,
-          winner2_card_url: data.length === 4 ? data[1] || null : null,
-          count: data.length,
-        };
-
-        return new Response(JSON.stringify(result), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (error) {
-        console.error("Backend fetch error:", error);
-        return new Response(
-          JSON.stringify({ error: "Backend error" }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
+    // If the backend returns an error, forward it to the client.
+    if (!backendResponse.ok) {
+      const errorData = await backendResponse.json();
+      return NextResponse.json(errorData, { status: backendResponse.status });
     }
 
-    // Mock response for 2 images
-    await new Promise((r) => setTimeout(r, 1200));
+    // The backend returns an array of winner card URLs.
+    const winnerUrls: (string | null)[] = await backendResponse.json();
 
-    return new Response(
-      JSON.stringify({
-        winner1_card_url: "/placeholder.svg?height=640&width=480",
-        winner2_card_url: null,
-        count: 2,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    // Transform the array into a structured object for the client.
+    const result = {
+      winner1_card_url: winnerUrls[0] || null,
+      winner2_card_url: winnerUrls[1] || null, // Gracefully handles cases with only one winner.
+      count: winnerUrls.length, // The number of winners returned.
+    };
+
+    return NextResponse.json(result, { status: 200 });
+
   } catch (error) {
-    console.error("Internal error:", error);
-    return new Response(
-      JSON.stringify({ error: "Server error" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    console.error("Error in API route:", error);
+    return NextResponse.json(
+      { error: "An internal server error occurred." },
+      { status: 500 }
     );
   }
 }
