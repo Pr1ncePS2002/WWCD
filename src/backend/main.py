@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import List
@@ -21,13 +21,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create temp directory and mount static directory
+# Create temp directory and mount static directory with a name
 os.makedirs("temp_uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.post("/predict-winners")
-async def predict_winners(images: List[UploadFile] = File(...)):
+async def predict_winners(request: Request, images: List[UploadFile] = File(...)):
     if len(images) not in [2, 4]:
         raise HTTPException(
             status_code=400,
@@ -68,9 +68,11 @@ async def predict_winners(images: List[UploadFile] = File(...)):
         winner_cards = []
         for winner in winners:
             card_path = get_card(winner["path"])
-            filename = os.path.basename(card_path)  # get just "942bf34d.png"
-            file_url = f"http://localhost:8000/static/generated_cards/{filename}"
-            winner_cards.append(file_url)
+            filename = os.path.basename(card_path)
+            
+            # --- FIX: Generate URL dynamically based on the request ---
+            file_url = request.url_for('static', path=f"generated_cards/{filename}")
+            winner_cards.append(str(file_url)) # Convert URL object to string
 
         return winner_cards
 
@@ -83,4 +85,6 @@ async def predict_winners(images: List[UploadFile] = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # --- FIX: Use PORT from environment variable for deployment, with a fallback for local dev ---
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
