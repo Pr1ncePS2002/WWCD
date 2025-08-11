@@ -1,9 +1,19 @@
+# Build tools
 setuptools>=65.5.0
 wheel
-tensorflow==2.20.0rc0
-deepface==0.0.75
-fastapi==0.95.2
-opencv-python==4.7.0.72
-pandas==1.5.3
-numpy==1.23.5
-python-dotenv==1.0.0
+
+# Core ML library
+tensorflow~=2.16.1
+
+# Web application
+fastapi
+uvicorn[standard]
+
+# Other libraries
+deepface
+opencv-python
+pandas
+numpy
+python-dotenv
+rembg
+onnxruntime
