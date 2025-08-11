@@ -26,4 +26,5 @@ COPY . .
 EXPOSE 8000
 
 # Run backend (adjust command if using Flask, FastAPI, Django, etc.)
-CMD ["python", "main.py"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT}"]
+
