@@ -8,6 +8,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install OS updates & dependencies
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential gcc \
+    libgl1 \
+    libglib2.0-0 \
  && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -21,9 +23,10 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 # Copy backend source code
 COPY . .
 
-# Expose port (Render will still set the real port via $PORT)
+# Expose port
 EXPOSE 8000
 
-# Run backend with Render's assigned port
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+# Use JSON form with shell so $PORT is expanded
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
+
 
