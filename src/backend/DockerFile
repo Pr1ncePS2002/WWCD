@@ -1,7 +1,6 @@
 # Backend (Python)
 FROM python:3.11-slim AS builder
 
-
 # Avoid interactive prompts & keep images small
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -22,9 +21,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
 # Copy backend source code
 COPY . .
 
-# Expose port (change if needed)
+# Expose port (Render will still set the real port via $PORT)
 EXPOSE 8000
 
-# Run backend (adjust command if using Flask, FastAPI, Django, etc.)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT}"]
-
+# Run backend with Render's assigned port
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
