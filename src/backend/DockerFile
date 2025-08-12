@@ -1,22 +1,28 @@
+# Backend (Python)
 FROM python:3.11-slim
 
+# Avoid interactive prompts & keep images small
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# Install OS updates & dependencies (including OpenCV runtime)
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential gcc libgl1 libglib2.0-0 \
  && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Set working directory to your backend folder
+WORKDIR /src/backend
 
-COPY requirements.txt .
+# Copy requirements & install
+COPY src/backend/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
  && pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy backend source code
+COPY src/backend/ .
 
-# Render sets $PORT automatically
+# Expose the Render port
 EXPOSE 8000
 
+# Run the FastAPI app (Render will set $PORT, main.py will pick it up)
 CMD ["python", "main.py"]
-
