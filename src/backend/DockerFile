@@ -10,19 +10,19 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential gcc libgl1 libglib2.0-0 \
  && rm -rf /var/lib/apt/lists/*
 
-# Set working directory to your backend folder
-WORKDIR /src/backend
+# Set working directory inside container
+WORKDIR /app
 
 # Copy requirements & install
-COPY src/backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
  && pip install --no-cache-dir -r requirements.txt
 
 # Copy backend source code
-COPY src/backend/ .
+COPY . .
 
 # Expose the Render port
 EXPOSE 8000
 
-# Run the FastAPI app (Render will set $PORT, main.py will pick it up)
+# Run the FastAPI app
 CMD ["python", "main.py"]
